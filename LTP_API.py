@@ -10,25 +10,30 @@ import requests
 import sys
 import os
 
-file_path = 'testfile'
+file_path = r'C:\Users\51694\PycharmProjects\crawler\2015\20150101'
+dic_path = r'C:\Users\51694\PycharmProjects\EventExtract\tt'
 DIV = '--------------------------------------------------------------------------------'
 
 
 class TextAnalysisByLTP:
 
-    def __init__(self, path):
+    def __init__(self, path, dir_path_flag=False):
+        self.dir_flag = dir_path_flag
         self.__url_get_base = "http://api.ltp-cloud.com/analysis/?"
         self.__api_key = 'z8o079p31CVWTcjD2s2hBgjTxhWPOBzNcpYWMi2q'
         self.__format = 'json'
         self.__path = path
-        self.__file = self.readfile()
         self.__output = 'output'
         self.__output_num = 1
         self.ner = []
         self.punctuation = ',.，。：、'
+        self.hed = []
+        self.result_path = os.getcwd() + '\\' + 'LTP_result'
 
-    def readfile(self):
-        with open(self.__path, 'r', encoding='utf-8') as f:
+
+    @staticmethod
+    def readfile(path):
+        with open(path, 'r', encoding='utf-8') as f:
             file = f.readlines()
         return file
 
@@ -47,6 +52,14 @@ class TextAnalysisByLTP:
         for i in self.punctuation:
             sentence = sentence.replace(i, ' ')
         return sentence
+
+    @staticmethod
+    def stopword(sentence):
+        with open('stopword', encoding='utf-8') as f:
+            stopword = f.readlines()
+        for word in sentence:
+            if word in stopword:
+                sentence.pop(word)
 
     @staticmethod
     def __ws(line_json):
@@ -80,33 +93,16 @@ class TextAnalysisByLTP:
         self.ner += name_entity
         return sentence_token
 
-    # def __dp(self, line_json):
-    #     sentence_token = []
-    #     for word in line_json:
-    #         cont = word['cont']
-    #         sentence_token.append(cont)
-    #     return sentence_token
-    #
-    # def __sdp(self, line_json):
-    #     sentence_token = []
-    #     for word in line_json:
-    #         cont = word['cont']
-    #         sentence_token.append(cont)
-    #     return sentence_token
-    #
-    # def __srl(self, line_json):
-    #     sentence_token = []
-    #     for word in line_json:
-    #         print(word)
-    #         cont = word['cont']
-    #         sentence_token.append(cont)
-    #     return sentence_token
+    def __dp(self, line_json):
+        for word in line_json:
+            if word['relate'] == 'HED':
+                self.hed.append(word['cont'])
 
     def __writefile(self, processed_txt, file_name, pattern):
         output_file = ''
         for i in range(1, 10000):
-            output_file = pattern + '_' + file_name + str(i) + '.txt'
-            if output_file in os.listdir(os.getcwd()):
+            output_file = self.result_path + '\\' + pattern + '_' + file_name + str(i) + '.txt'
+            if output_file in os.listdir(self.result_path):
                 continue
             else:
                 break
@@ -116,12 +112,32 @@ class TextAnalysisByLTP:
     def __count(self, count_list, pattern):
         if pattern == 'ner':
             count_list = self.ner
+        if pattern == 'dp':
+            count_list = self.hed
         word_freq = collections.Counter(count_list)
         count_seq = sorted(word_freq.items(), key=lambda d: d[1], reverse=True)
         self.__writefile(str(count_seq), 'count', pattern)
         return dict(word_freq.items())
 
     def process(self, pattern):
+        os.makedirs(self.result_path)
+        processed_sent = []
+        count_list = []
+        if self.dir_flag:
+            file_names = os.listdir(self.__path)
+            for file_name in file_names:
+                path = self.__path + '\\' + file_name
+                file = self.readfile(path)
+                processed_sent, count_list = self.__ltpget(file, pattern)
+        else:
+            file = self.readfile(self.__path)
+            processed_sent, count_list = self.__ltpget(file, pattern)
+
+        if pattern != 'dp':
+            self.__writefile('\n'.join(processed_sent), 'output', pattern)
+        self.__count(count_list, pattern)
+
+    def __ltpget(self, file, pattern):
         try_count = 0
         process_count = 0
         fail_count = 0
@@ -129,7 +145,7 @@ class TextAnalysisByLTP:
         processed_sent = []
         fail_list = []
         try:
-            for line in self.__file:
+            for line in file:
                 try_count += 1
                 line = self.__del_semicolon(line)
                 line = self.__del_punc(line)
@@ -144,14 +160,10 @@ class TextAnalysisByLTP:
                     elif pattern == 'ner':
                         sentence_token = self.__ner(line_json)
                     elif pattern == 'dp':
-                        pass
-                        # sentence_token = self.__dp(line_json)
-                    elif pattern == 'sdp':
-                        pass
-                        # sentence_token = self.__sdp(line_json)
-                    elif pattern == 'srl':
-                        pass
-                        # sentence_token = self.__srl(line_json)
+                        self.__dp(line_json)
+                        print('Success prcoessing', str(process_count), 'sentence.   ', 'Fail', str(fail_count),
+                              'sentence')
+                        continue
                     else:
                         return -1
                     str_token = ' '.join(sentence_token)
@@ -165,12 +177,11 @@ class TextAnalysisByLTP:
                     continue
         except:
             print('final process:', str(process_count))
-        self.__writefile('\n'.join(processed_sent), 'output', pattern)
-        self.__count(count_list, pattern)
-
-
+        return processed_sent, count_list
 
 if __name__ == '__main__':
-    a = TextAnalysisByLTP(sys.argv[1])
-    a.process(sys.argv[2])
+    # a = TextAnalysisByLTP(sys.argv[1])
+    # a.process(sys.argv[2])
+    a = TextAnalysisByLTP(dic_path, dir_path_flag=True)
+    a.process('ws')
 
