@@ -14,3 +14,8 @@ with open('counter',encoding='utf-8') as f:
     print(sum_dict)
     #json_dict = json.dumps(sum_dict)
 
+# with open(r'C:\Users\51694\PycharmProjects\EventExtract\wanfangzhaiyao\wanfangzhaiyao.txt',encoding='utf-8') as f:
+#     for i in f.readlines():
+#         if i[0] != ' ':
+#             with open('new.txt','a',encoding='utf-8') as f1:
+#                 f1.write(i)
