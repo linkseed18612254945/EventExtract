@@ -1,0 +1,10 @@
+﻿利用LTP进行分词、词性标注、命名实体识别操作，需要联网使用：
+第一步：在CMD中进入此目录
+第二步：输入：python LTP_API.py 待处理文件路径或文件名 处理类别(分词ws,词性标注pos,命名实体识别ner)
+第三部：生成LTP_result文件夹，其中包含处理后结果文件和简单词频统计文件。
+
+注：可以添加dir=1参数（默认为0）来指定目标目录，将自动处理目录下所有文档。示例：python LTP_API.py testdir ws dir=1
+	可以添加count=0参数（默认为1）来控制不生成词频统计文件。示例：python LTP_API.py testfile ws count=0
+	
+
+sentence_cut.py可进行简单的分句，在cmd中输入：python sentence_cut.py 目标文件名或目录	
