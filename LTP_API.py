@@ -99,6 +99,7 @@ class TextAnalysisByLTP:
         for word in line_json:
             cont = word['cont']
             pos = word['pos']
+            print(word)
             if word['relate'] == 'HED':
                 self.hed.append(word['cont'])
 
@@ -201,8 +202,8 @@ class TextAnalysisByLTP:
 if __name__ == '__main__':
     file_path = r'C:\Users\51694\PycharmProjects\EventExtract\wanfangzhaiyao\wanfangzhaiyao_cut.txt'
     dic_path = r'C:\Users\51694\PycharmProjects\crawler\2015'
-    # a = TextAnalysisByLTP(sys.argv[1])
-    # a.process(sys.argv[2])
-    a = TextAnalysisByLTP(file_path, dir_path_flag=False)
-    a.process('ner', output_count=True)
+    a = TextAnalysisByLTP(sys.argv[1])
+    a.process(sys.argv[2])
+    a = TextAnalysisByLTP('testfile', dir_path_flag=False)
+    a.process('dp', output_count=True)
 
